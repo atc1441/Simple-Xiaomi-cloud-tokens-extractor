@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import random
 import time
 from getpass import getpass
@@ -136,6 +137,30 @@ class XiaomiCloudConnector:
             "data": '{"did":"' + did + '","pdid":1}'
         }
         return self.execute_api_call_encrypted(url, params)
+    
+    def get_devicefw(self, country, did):
+        url = self.get_api_url(country) + "/v2/device/latest_ver"
+        params = {
+            "data": '{"did": "' + did + '"}'
+        }
+        return self.execute_api_call_encrypted(url, params)
+    
+    def download_firmware(self, url, name):
+        folder_name = "firmwares"
+        os.makedirs(folder_name, exist_ok=True)
+        try:
+            base_filename = url.split("/")[-1].split("?")[0]
+            sanitized_name = re.sub(r'[^a-zA-Z0-9_-]', "", name)
+            file_name = f"{sanitized_name}_{base_filename}"
+            file_path = os.path.join(folder_name, file_name)
+            response = requests.get(url, stream=True)
+            response.raise_for_status()
+            with open(file_path, "wb") as file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    file.write(chunk)
+            return f"File downloaded successfully: {file_path}"
+        except requests.exceptions.RequestException as e:
+            return f"Failed to download the file: {e}"
 
     def execute_api_call_encrypted(self, url, params):
         headers = {
@@ -304,6 +329,19 @@ def main():
                                 beaconkey = connector.get_beaconkey(current_server, device["did"])
                                 if beaconkey and "result" in beaconkey and "beaconkey" in beaconkey["result"]:
                                     print_entry("BLE KEY", beaconkey["result"]["beaconkey"], 3)
+                                firmwares = connector.get_devicefw(current_server, device["did"])
+                                if firmwares and "result" in firmwares and "url" in firmwares["result"] and firmwares["result"]["url"]:
+                                    print_entry("Firmware", firmwares["result"]["url"], 3)
+                                    print(connector.download_firmware(firmwares["result"]["url"], "url_" + device["name"]))
+                                if firmwares and "result" in firmwares and "safe_url" in firmwares["result"] and firmwares["result"]["safe_url"]:
+                                    print_entry("Firmware", firmwares["result"]["safe_url"], 3)
+                                    print(connector.download_firmware(firmwares["result"]["safe_url"], "safe_url_" + device["name"]))
+                                if firmwares and "result" in firmwares and "diff_url" in firmwares["result"] and firmwares["result"]["diff_url"]:
+                                    print_entry("Firmware", firmwares["result"]["diff_url"], 3)
+                                    print(connector.download_firmware(firmwares["result"]["diff_url"], "diff_url_" + device["name"]))
+                                if firmwares and "result" in firmwares and "diff_safe_url" in firmwares["result"] and firmwares["result"]["diff_safe_url"]:
+                                    print_entry("Firmware", firmwares["result"]["diff_safe_url"], 3)
+                                    print(connector.download_firmware(firmwares["result"]["diff_safe_url"], "diff_safe_url_" + device["name"]))
                         if "mac" in device:
                             print_entry("MAC", device["mac"], 3)
                         if "localip" in device:
