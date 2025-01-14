@@ -149,7 +149,7 @@ class XiaomiCloudConnector:
         folder_name = "firmwares"
         os.makedirs(folder_name, exist_ok=True)
         try:
-            base_filename = url.split("/")[-1].split("?")[0]
+            base_filename = url.split("?")[0].split("/")[-1]
             sanitized_name = re.sub(r'[^a-zA-Z0-9_-]', "", name)
             file_name = f"{sanitized_name}_{base_filename}"
             file_path = os.path.join(folder_name, file_name)
