@@ -338,22 +338,22 @@ def main():
                         if "model" in device:
                             print_entry("MODEL", device["model"], 3)
                         if "did" in device:
-                            print_entry("ID", device["did"], 3)
                             model_name = "no_name_supplied"
                             if "model" in device and device["model"]:
                                 model_name = device["model"]
-                            if "blt" in device["did"]:
-                                firmwares = connector.get_devicefw(current_server, device["did"])
-                                if firmwares and "result" in firmwares and "url" in firmwares["result"] and firmwares["result"]["url"]:
+                            firmwares = connector.get_devicefw(current_server, device["did"])
+                            #print(firmwares)
+                            if firmwares and "result" in firmwares and firmwares["result"] is not None:
+                                if "url" in firmwares["result"] and firmwares["result"]["url"]:
                                     print_entry("Firmware", firmwares["result"]["url"], 3)
                                     print(connector.download_firmware(firmwares["result"]["url"], "url_" + model_name))
-                                if firmwares and "result" in firmwares and "safe_url" in firmwares["result"] and firmwares["result"]["safe_url"]:
+                                if "safe_url" in firmwares["result"] and firmwares["result"]["safe_url"]:
                                     print_entry("Firmware", firmwares["result"]["safe_url"], 3)
                                     print(connector.download_firmware(firmwares["result"]["safe_url"], "safe_url_" + model_name))
-                                if firmwares and "result" in firmwares and "diff_url" in firmwares["result"] and firmwares["result"]["diff_url"]:
+                                if "diff_url" in firmwares["result"] and firmwares["result"]["diff_url"]:
                                     print_entry("Firmware", firmwares["result"]["diff_url"], 3)
                                     print(connector.download_firmware(firmwares["result"]["diff_url"], "diff_url_" + model_name))
-                                if firmwares and "result" in firmwares and "diff_safe_url" in firmwares["result"] and firmwares["result"]["diff_safe_url"]:
+                                if "diff_safe_url" in firmwares["result"] and firmwares["result"]["diff_safe_url"]:
                                     print_entry("Firmware", firmwares["result"]["diff_safe_url"], 3)
                                     print(connector.download_firmware(firmwares["result"]["diff_safe_url"], "diff_safe_url_" + model_name))
                     print_tabbed("---------", 3)
